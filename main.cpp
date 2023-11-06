@@ -7,6 +7,7 @@
 
 SDL_Window* window;
 SDL_Renderer* renderer;
+bool hasWon = false;
 
 typedef struct {
     uint8_t* start;        // Puntero al inicio del archivo de audio
@@ -79,7 +80,6 @@ void draw_floor(SDL_Renderer* renderer, Color floorColor, Color backgroundColor)
 
 void loadMapAndRunGame(Raycaster& r, const std::string& mapFilePath) {
     r.load_map(mapFilePath);
-    int speed = 10;
     bool running = true;
 
     int frameCount = 0;
@@ -103,12 +103,10 @@ void loadMapAndRunGame(Raycaster& r, const std::string& mapFilePath) {
                         r.player.a -= 3.14 / 24;
                         break;
                     case SDLK_UP:
-                        r.player.x += speed * cos(r.player.a);
-                        r.player.y += speed * sin(r.player.a);
+                        r.sdlk_up();
                         break;
                     case SDLK_DOWN:
-                        r.player.x -= speed * cos(r.player.a);
-                        r.player.y -= speed * sin(r.player.a);
+                        r.sdlk_down();
                         break;
                     default:
                         break;
@@ -116,10 +114,17 @@ void loadMapAndRunGame(Raycaster& r, const std::string& mapFilePath) {
             }
         }
 
+
+
         clear(renderer);
         draw_floor(renderer, FLOOR_COLOR, BACKGROUND_COLOR);
         r.render();
         SDL_RenderPresent(renderer);
+
+        if (hasWon){
+            r.draw_victory_screen();
+            running = false;
+        }
 
         auto endTime = std::chrono::high_resolution_clock::now();
         double frameTime = std::chrono::duration<double>(endTime - startTime).count();
@@ -150,8 +155,9 @@ int main(int argc, char* argv[]) {
     ImageLoader::loadImage("|", "../assets/wall.png");
     ImageLoader::loadImage("*", "../assets/foto.png");
     ImageLoader::loadImage("g", "../assets/wall_salida.png");
+    ImageLoader::loadImage(".", "../assets/wall_salida.png");
     ImageLoader::loadImage("welcome_image", "../assets/welcome.png");
-    ImageLoader::loadImage("win_image", "../assets/img.png");
+    ImageLoader::loadImage("win", "../assets/welcome.png");
     ImageLoader::loadImage("level_image", "../assets/level.png");
 
     Raycaster r = { renderer };
@@ -205,6 +211,11 @@ int main(int argc, char* argv[]) {
                         break;
                 }
             }
+        }
+
+        if (hasWon){
+            r.draw_victory_screen();
+            running = false;
         }
     }
     SDL_CloseAudio();
