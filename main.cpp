@@ -4,10 +4,13 @@
 #include "raycaster.h"
 #include "color.h"
 #include <SDL2/SDL_audio.h>
+#include <SDL2/SDL_gamecontroller.h>
+
 
 SDL_Window* window;
 SDL_Renderer* renderer;
 bool hasWon = false;
+float joystickSpeed = 0.1f; // Ajusta la velocidad según tus necesidades
 
 typedef struct {
     uint8_t* start;        // Puntero al inicio del archivo de audio
@@ -89,6 +92,11 @@ void loadMapAndRunGame(Raycaster& r, const std::string& mapFilePath) {
 
     while (running) {
         SDL_Event event;
+        if (SDL_NumJoysticks() > 0) {
+            SDL_GameControllerOpen(0); // Abre el primer controlador encontrado
+        } else {
+            // No se detectaron controladores, maneja esto según tus necesidades
+        }
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = false;
@@ -112,19 +120,63 @@ void loadMapAndRunGame(Raycaster& r, const std::string& mapFilePath) {
                         break;
                 }
             }
+
+            // Manejo de eventos del controlador
+            if (event.type == SDL_CONTROLLERBUTTONDOWN) {
+                switch (event.cbutton.button) {
+                    case SDL_CONTROLLER_BUTTON_DPAD_UP:
+                        // Acción al presionar el botón arriba del controlador
+                        r.sdlk_up();
+                        break;
+                    case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+                        // Acción al presionar el botón abajo del controlador
+                        r.sdlk_down();
+                        break;
+                        // Agrega más casos para otros botones del controlador
+                    case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+                        r.player.a -= 3.14 / 24;
+                        break;
+                    case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+                        r.player.a += 3.14 / 24;
+                        break;
+                }
+            }
+
+            const int JOYSTICK_DEAD_ZONE = 32500;
+
+            // Manejo de eventos del joystick
+            if (event.type == SDL_JOYAXISMOTION) {
+                if (event.jaxis.axis == 0) {
+                    if (event.jaxis.value < -JOYSTICK_DEAD_ZONE) {
+                        // Mover hacia la izquierda
+                        r.player.a += 3.14 / 24;
+                    } else if (event.jaxis.value > JOYSTICK_DEAD_ZONE) {
+                        // Mover hacia la derecha
+                        r.player.a -= 3.14 / 24;
+                    }
+                }
+                if (event.jaxis.axis == 1) {
+                    if (event.jaxis.value < -JOYSTICK_DEAD_ZONE) {
+                        // Mover hacia arriba
+                        r.sdlk_up();
+                    } else if (event.jaxis.value > JOYSTICK_DEAD_ZONE) {
+                        // Mover hacia abajo
+                        r.sdlk_down();
+                    }
+                }
+            }
+
         }
-
-
-
-        clear(renderer);
-        draw_floor(renderer, FLOOR_COLOR, BACKGROUND_COLOR);
-        r.render();
-        SDL_RenderPresent(renderer);
 
         if (hasWon){
             r.draw_victory_screen();
             running = false;
         }
+
+        clear(renderer);
+        draw_floor(renderer, FLOOR_COLOR, BACKGROUND_COLOR);
+        r.render();
+        SDL_RenderPresent(renderer);
 
         auto endTime = std::chrono::high_resolution_clock::now();
         double frameTime = std::chrono::duration<double>(endTime - startTime).count();
@@ -144,7 +196,7 @@ void loadMapAndRunGame(Raycaster& r, const std::string& mapFilePath) {
 }
 
 int main(int argc, char* argv[]) {
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER);
     ImageLoader::init();
 
     window = SDL_CreateWindow("DOOM", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
@@ -154,7 +206,7 @@ int main(int argc, char* argv[]) {
     ImageLoader::loadImage("-", "../assets/wall.png");
     ImageLoader::loadImage("|", "../assets/wall.png");
     ImageLoader::loadImage("*", "../assets/foto.png");
-    ImageLoader::loadImage("g", "../assets/wall_salida.png");
+    //ImageLoader::loadImage("g", "../assets/wall_salida.png");
     ImageLoader::loadImage(".", "../assets/wall_salida.png");
     ImageLoader::loadImage("welcome_image", "../assets/welcome.png");
     ImageLoader::loadImage("win", "../assets/welcome.png");

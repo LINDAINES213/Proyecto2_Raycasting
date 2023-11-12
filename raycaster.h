@@ -64,7 +64,7 @@ public:
         int newJ = newY / BLOCKSIZE;
 
         // Verifica si la nueva posición es un espacio en blanco en el mapa
-        if (map[newJ][newI] == ' ') {
+        if (map[newJ][newI] == ' ' && map[newJ][newI] != '.') {
             // Actualiza la posición del jugador
             player.x = newX;
             player.y = newY;
@@ -82,7 +82,7 @@ public:
         int newJ = newY / BLOCKSIZE;
 
         // Verifica si la nueva posición es un espacio en blanco en el mapa
-        if (map[newJ][newI] == ' ') {
+        if (map[newJ][newI] == ' ' && map[newJ][newI] != '.') {
             // Actualiza la posición del jugador
             player.x = newX;
             player.y = newY;
@@ -166,8 +166,7 @@ public:
         int player_x = static_cast<int>(player.x / BLOCK);
         int player_y = static_cast<int>(player.y / BLOCK);
 
-        // Comprueba si el jugador está en una posición de victoria ('y' en el mapa)
-        if (map[player_y][player_x] == 'g') {
+        if (map[player_y][player_x] == '.') {
             return true;
         }
         return false;
