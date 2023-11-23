@@ -6,11 +6,8 @@
 #include <SDL2/SDL_audio.h>
 #include <SDL2/SDL_gamecontroller.h>
 
-
 SDL_Window* window;
 SDL_Renderer* renderer;
-bool hasWon = false;
-float joystickSpeed = 0.1f; // Ajusta la velocidad según tus necesidades
 
 typedef struct {
     uint8_t* start;        // Puntero al inicio del archivo de audio
@@ -56,7 +53,6 @@ void welcomeScreen(SDL_Renderer* renderer) {
     }
 }
 
-
 void clear(SDL_Renderer* renderer){
     SDL_SetRenderDrawColor(renderer, 135, 206, 250, 255);
     SDL_RenderClear(renderer);
@@ -81,7 +77,7 @@ void draw_floor(SDL_Renderer* renderer, Color floorColor, Color backgroundColor)
     SDL_RenderFillRect(renderer, &floorRect);
 }
 
-void loadMapAndRunGame(Raycaster& r, const std::string& mapFilePath) {
+void loadMap(Raycaster& r, const std::string& mapFilePath) {
     r.load_map(mapFilePath);
     bool running = true;
 
@@ -95,7 +91,7 @@ void loadMapAndRunGame(Raycaster& r, const std::string& mapFilePath) {
         if (SDL_NumJoysticks() > 0) {
             SDL_GameControllerOpen(0); // Abre el primer controlador encontrado
         } else {
-            // No se detectaron controladores, maneja esto según tus necesidades
+            //std::cout << "No se encontraron controladores" << std::endl;
         }
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
@@ -168,11 +164,6 @@ void loadMapAndRunGame(Raycaster& r, const std::string& mapFilePath) {
 
         }
 
-        if (hasWon){
-            r.draw_victory_screen();
-            running = false;
-        }
-
         clear(renderer);
         draw_floor(renderer, FLOOR_COLOR, BACKGROUND_COLOR);
         r.render();
@@ -206,10 +197,9 @@ int main(int argc, char* argv[]) {
     ImageLoader::loadImage("-", "../assets/wall.png");
     ImageLoader::loadImage("|", "../assets/wall.png");
     ImageLoader::loadImage("*", "../assets/foto.png");
-    //ImageLoader::loadImage("g", "../assets/wall_salida.png");
     ImageLoader::loadImage(".", "../assets/wall_salida.png");
     ImageLoader::loadImage("welcome_image", "../assets/welcome.png");
-    ImageLoader::loadImage("win", "../assets/welcome.png");
+    ImageLoader::loadImage("win", "../assets/win.png");
     ImageLoader::loadImage("level_image", "../assets/level.png");
 
     Raycaster r = { renderer };
@@ -253,21 +243,16 @@ int main(int argc, char* argv[]) {
             if (event.type == SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
                     case SDLK_a:
-                        loadMapAndRunGame(r, "../assets/mapita.txt");
+                        loadMap(r, "../assets/mapita.txt");
                         break;
                     case SDLK_b:
-                        loadMapAndRunGame(r, "../assets/mapB.txt");
+                        loadMap(r, "../assets/mapB.txt");
                         break;
                     case SDLK_c:
-                        loadMapAndRunGame(r, "../assets/mapC.txt");
+                        loadMap(r, "../assets/mapC.txt");
                         break;
                 }
             }
-        }
-
-        if (hasWon){
-            r.draw_victory_screen();
-            running = false;
         }
     }
     SDL_CloseAudio();

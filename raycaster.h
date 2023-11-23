@@ -15,7 +15,6 @@ const Color W = {255, 255, 255};
 const Color BACKGROUND_COLOR = {21, 177, 229};
 const Color FLOOR_COLOR = {9, 69, 153};
 const Color MAP = {19, 160, 204};
-
 const int WIDTH = 16;
 const int HEIGHT = 11;
 const int BLOCK = 50;
@@ -64,7 +63,7 @@ public:
         int newJ = newY / BLOCKSIZE;
 
         // Verifica si la nueva posición es un espacio en blanco en el mapa
-        if (map[newJ][newI] == ' ' && map[newJ][newI] != '.') {
+        if (map[newJ][newI] == ' ') {
             // Actualiza la posición del jugador
             player.x = newX;
             player.y = newY;
@@ -82,7 +81,7 @@ public:
         int newJ = newY / BLOCKSIZE;
 
         // Verifica si la nueva posición es un espacio en blanco en el mapa
-        if (map[newJ][newI] == ' ' && map[newJ][newI] != '.') {
+        if (map[newJ][newI] == ' ') {
             // Actualiza la posición del jugador
             player.x = newX;
             player.y = newY;
@@ -162,66 +161,73 @@ public:
     }
 
     // Función para verificar si el jugador ha ganado
-    bool has_won() {
+    bool check_win_condition() {
         int player_x = static_cast<int>(player.x / BLOCK);
         int player_y = static_cast<int>(player.y / BLOCK);
 
-        if (map[player_y][player_x] == '.') {
+        std::cout << "Player Position: (" << player_x << ", " << player_y << ")" << std::endl;
+
+        if ((player_x == 4 && player_y == 3) || (player_x == 5 && player_y == 2)) {
+            std::cout << "You Win!" << std::endl;
             return true;
         }
         return false;
     }
 
-    // Nueva función para mostrar la pantalla de victoria
-    void draw_victory_screen() {
-        bool hasWon = false;
-        // Limpia el renderizador
-        if(has_won()){
-            hasWon = true;
-            SDL_RenderClear(renderer);
-            // Dibuja la pantalla de victoria (imagen o texto)
-            ImageLoader::render(renderer, "win", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-            // Refresca el renderizador
-            SDL_RenderPresent(renderer);
-        }
-    }
 
     void render() {
+
+        if (check_win_condition()) {
+            // Limpia el renderizador
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            SDL_RenderClear(renderer);
+
+            // Dibuja la pantalla de victoria (imagen o texto)
+            ImageLoader::render(renderer, "win", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+            // Refresca el renderizador
+            SDL_RenderPresent(renderer);
+
+            // Pausa el juego por un breve momento para que el jugador vea la pantalla de victoria
+            SDL_Delay(10000);  // Puedes ajustar la duración según tus preferencias
+            //SDL_Quit();
+            //exit(0);
+        } else {
         // draw left side of the screen
-        for (int i = 1; i < SCREEN_WIDTH; i++) {
-              double a = player.a + player.fov / 2.0 - player.fov * i / SCREEN_WIDTH;
-              Impact impact = cast_ray(a);
-              float d = impact.d;
-              Color c = Color(255, 0, 0);
-
-              if (d == 0) {
-                  std::cout << "you lose" << std::endl;
-                  exit(1);
-              }
-
-              int x = i;
-              float h = static_cast<float>(SCREEN_HEIGHT)/static_cast<float>(d) * static_cast<float>(scale);
-              draw_stake(x, h, impact);
-        }
-
-
-        for (int x = 0; x < MAPWIDTH; x += BLOCKSIZE) {
-            for (int y = 0; y < MAPHEIGHT; y += BLOCKSIZE) {
-                int i = static_cast<int>(x / BLOCKSIZE);
-                int j = static_cast<int>(y / BLOCKSIZE);
-
-                if (map[j][i] != ' ') {
-                  std::string mapHit;
-                  mapHit = map[j][i];
+            for (int i = 1; i < SCREEN_WIDTH; i++) {
+                  double a = player.a + player.fov / 2.0 - player.fov * i / SCREEN_WIDTH;
+                  Impact impact = cast_ray(a);
+                  float d = impact.d;
                   Color c = Color(255, 0, 0);
-                  rect(x, y, mapHit);
-                } else{
-                    SDL_SetRenderDrawColor(renderer, MAP.r, MAP.g, MAP.b, MAP.a);
-                    SDL_Rect rect = {x, y, BLOCKSIZE, BLOCKSIZE};
-                    SDL_RenderFillRect(renderer, &rect);
-                }
+
+                  if (d == 0) {
+                      std::cout << "you lose" << std::endl;
+                      exit(1);
+                  }
+
+                  int x = i;
+                  float h = static_cast<float>(SCREEN_HEIGHT)/static_cast<float>(d) * static_cast<float>(scale);
+                  draw_stake(x, h, impact);
             }
-          }
+
+
+            for (int x = 0; x < MAPWIDTH; x += BLOCKSIZE) {
+                for (int y = 0; y < MAPHEIGHT; y += BLOCKSIZE) {
+                    int i = static_cast<int>(x / BLOCKSIZE);
+                    int j = static_cast<int>(y / BLOCKSIZE);
+
+                    if (map[j][i] != ' ') {
+                      std::string mapHit;
+                      mapHit = map[j][i];
+                      Color c = Color(255, 0, 0);
+                      rect(x, y, mapHit);
+                    } else{
+                        SDL_SetRenderDrawColor(renderer, MAP.r, MAP.g, MAP.b, MAP.a);
+                        SDL_Rect rect = {x, y, BLOCKSIZE, BLOCKSIZE};
+                        SDL_RenderFillRect(renderer, &rect);
+                    }
+                }
+          }}
 
         for (int i = 0; i < MAPWIDTH; i++) {
           float a = player.a + player.fov / 2 - player.fov * i / MAPWIDTH;
@@ -232,6 +238,7 @@ Player player;
 private:
   int scale;
   SDL_Renderer* renderer;
+
   std::vector<std::string> map;
   int tsize;
 };
