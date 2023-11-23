@@ -35,7 +35,7 @@ void AudioCallback(void* userData, Uint8* stream, int len){
     }
 }
 
-void welcomeScreen(SDL_Renderer* renderer) {
+void showWelcomeScreen(SDL_Renderer* renderer) {
     bool welcome = false;
     while (!welcome) {
         ImageLoader::render(renderer, "welcome_image", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
     SDL_PauseAudio(0);
 
     bool running = true;
-    welcomeScreen(renderer);
+    showWelcomeScreen(renderer);
     while (running) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
