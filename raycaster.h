@@ -167,7 +167,7 @@ public:
 
         std::cout << "Player Position: (" << player_x << ", " << player_y << ")" << std::endl;
 
-        if ((player_x == 4 && player_y == 3) || (player_x == 5 && player_y == 2)) {
+        if ((player_x == 4 && player_y == 3) || (player_x == 5 && player_y == 2) || (player_x == 5 && player_y == 3)){
             std::cout << "You Win!" << std::endl;
             return true;
         }
